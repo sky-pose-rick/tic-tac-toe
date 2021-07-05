@@ -39,7 +39,7 @@ h1 {
     min-height: 100px;
 }
 
-#info-input, #start-buttons {
+#info-input, #start-buttons, #turn-order {
     width: max-content;
     margin: auto;
     margin-top: 10px;
