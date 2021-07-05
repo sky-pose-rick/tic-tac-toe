@@ -38,3 +38,10 @@ h1 {
     text-align: center;
     min-height: 100px;
 }
+
+#info-input, #start-buttons {
+    width: max-content;
+    margin: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
