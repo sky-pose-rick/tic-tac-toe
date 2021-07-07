@@ -1,12 +1,17 @@
 const Gameboard = (() =>{
-    /*let board = [];
-    for(let i = 0; i < 9; i++)
-    {
-        board.push(null);
-    }*/
+    let board;
 
-    let board = [1,1,1,1,null,-1,-1,-1,1];
-    return {board};
+    const resetBoard = ()=>{
+        board = [];
+        for(let i = 0; i < 9; i++)
+        {
+            board.push(null);
+        }
+    };
+
+    resetBoard();
+    board = [1,1,1,1,null,-1,-1,-1,1];
+    return {board, resetBoard};
 })();
 
 const DisplayController = (() => {
