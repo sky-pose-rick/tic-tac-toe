@@ -47,15 +47,32 @@ const Gameboard = (() =>{
 
 const DisplayController = (() => {
 
-    const cells = [... document.querySelectorAll("div.game-cell")];
+    const cellDiv = document.querySelector('#gameboard');
     const infoPanel = document.querySelector("#setup-panel");
     const turnPanel = document.querySelector("#turn-order");
 
+    let cells = [];
+    let cellTexts = [];
     let cellCount = 0;
-    const cellTexts = cells.map(cell => {
-        cell.setAttribute("data-index", cellCount++);
-        return cell.children[0];
-    });
+
+    //discard event listeners by redrawing grid
+    const createCell = (innerText, clicked) =>{
+        let newCell = document.createElement('div');
+        newCell.classList.add('game-cell');
+        newCell.setAttribute('data-index', cellCount++);
+
+        let newText = document.createElement('p');
+        newText.classList.add('cell-text');
+        newText.innerText = innerText;
+
+        if(clicked)
+            newCell.classList.add(clicked);
+        newCell.appendChild(newText);
+        cellDiv.appendChild(newCell);
+
+        cells.push(newCell);
+        cellTexts.push(newText);
+    };
 
     const markerToSymbol = marker =>{
         if(marker < 0)
@@ -65,13 +82,6 @@ const DisplayController = (() => {
         else
             return '';
     };
-
-    const updateCells = () => {
-        for (let i = 0; i < cellCount; i++){
-            let marker = Gameboard.board[i];
-            cellTexts[i].innerText = markerToSymbol(marker);
-        }
-    }
 
     const fetchNames = () => {
         let playerXName = infoPanel.querySelector("#name-x").value || 'Player 1';
@@ -91,9 +101,12 @@ const DisplayController = (() => {
     };
 
     const resetDisplay = () => {
-        for (let i = 0; i < cellCount; i++){
-            cellTexts[i].innerText = '';
-            cells[i].classList.remove('clicked');
+        cellCount = 0;
+        cellDiv.innerHTML = '';
+        cells = [];
+        cellTexts = [];
+        for (let i = 0; i < 9; i++){
+            createCell('', false);
             cells[i].addEventListener('click', (placeSymbol.bind(cells[i], cells[i])), {once:true});
         };
 
@@ -127,6 +140,14 @@ const DisplayController = (() => {
         else{
             turnPanel.innerText = `${player.name} (${player.symbol}) Wins!`;
         }
+
+        cellCount = 0;
+        cellDiv.innerHTML = '';
+        cells = [];
+        cellTexts = [];
+        for (let i = 0; i < 9; i++){
+            createCell(markerToSymbol(Gameboard.board[i]), !Gameboard.board[i]);
+        };
     }
 
     infoPanel.querySelector('#first-x').addEventListener('click', startX);
@@ -134,7 +155,7 @@ const DisplayController = (() => {
 
     console.log(infoPanel.querySelector('#first-o'));
 
-    return{updateCells, fetchNames, placeSymbol, resetDisplay, infoHide, updateTurnText, endText};
+    return{fetchNames, placeSymbol, resetDisplay, infoHide, updateTurnText, endText};
 })();
 
 const GameLogic = (()=> {
