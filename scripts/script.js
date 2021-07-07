@@ -83,18 +83,21 @@ const DisplayController = (() => {
         let player = GameLogic.currentPlayer();
         let index = elem.getAttribute("data-index");
         Gameboard.placeMarker(index, player);
+        elem.classList.add('clicked');
         cellTexts[index].innerText = player.symbol;
     };
 
     const resetDisplay = () => {
         cells.forEach(cell =>{
             cell.innerText = '';
+            cell.classList.remove('clicked');
             cell.removeEventListener('onclick', placeSymbol, {once:true});
             cell.addEventListener('onclick', placeSymbol, {once:true});
         });
     }
 
-    const startButtonEvent = (elem, firstTurn) =>{
+    const startButtonEvent = (elem, firstTurn) => {
+        console.log('Begin Game ('+firstTurn+')');
         GameLogic.beginGame(firstTurn);
     }
 
@@ -109,8 +112,10 @@ const DisplayController = (() => {
         }
     }
 
-    infoPanel.querySelector('#first-x').addEventListener('onclick', startButtonEvent(0));
-    infoPanel.querySelector('#first-o').addEventListener('onclick', startButtonEvent(1));
+    infoPanel.querySelector('#first-x').addEventListener('onclick', ()=>{startButtonEvent(0)});
+    infoPanel.querySelector('#first-o').addEventListener('onclick', ()=>{startButtonEvent(1)});
+
+    console.log(infoPanel.querySelector('#first-o'));
 
     return{updateCells, fetchNames, placeSymbol, resetDisplay, infoShow};
 })();
