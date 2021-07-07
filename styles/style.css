@@ -46,7 +46,7 @@ h1 {
     margin-bottom: 10px;
 }
 
-.clicked :hover{
+.clicked {
     background-color: rgb(247, 185, 185);
 }
 

@@ -82,18 +82,21 @@ const DisplayController = (() => {
     const placeSymbol = elem => {
         let player = GameLogic.currentPlayer();
         let index = elem.getAttribute("data-index");
+
         Gameboard.placeMarker(index, player);
         elem.classList.add('clicked');
         cellTexts[index].innerText = player.symbol;
     };
 
     const resetDisplay = () => {
-        cells.forEach(cell =>{
-            cell.innerText = '';
-            cell.classList.remove('clicked');
-            cell.removeEventListener('onclick', placeSymbol, {once:true});
-            cell.addEventListener('onclick', placeSymbol, {once:true});
-        });
+        for (let i = 0; i < cellCount; i++){
+            cellTexts[i].innerText = '';
+            cells[i].classList.remove('clicked');
+            cells[i].removeEventListener('click', ()=>{placeSymbol(cells[i])}, {once:true});
+            cells[i].addEventListener('click', ()=>{placeSymbol(cells[i])}, {once:true});
+        };
+
+        infoShow(true);
     }
 
     const startButtonEvent = (elem, firstTurn) => {
@@ -103,17 +106,17 @@ const DisplayController = (() => {
 
     const infoShow = isGameStart => {
         if(isGameStart){
-            infoPanel.setAttribute('hidden');
+            infoPanel.setAttribute('hidden', true);
             turnPanel.removeAttribute('hidden');
         }
         else{
             infoPanel.removeAttribute('hidden');
-            turnPanel.setAttribute('hidden');
+            turnPanel.setAttribute('hidden', true);
         }
     }
 
-    infoPanel.querySelector('#first-x').addEventListener('onclick', ()=>{startButtonEvent(0)});
-    infoPanel.querySelector('#first-o').addEventListener('onclick', ()=>{startButtonEvent(1)});
+    infoPanel.querySelector('#first-x').addEventListener('click', ()=>{startButtonEvent(this,0)});
+    infoPanel.querySelector('#first-o').addEventListener('click', ()=>{startButtonEvent(this,1)});
 
     console.log(infoPanel.querySelector('#first-o'));
 
