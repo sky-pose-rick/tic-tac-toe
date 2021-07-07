@@ -9,6 +9,10 @@ const Gameboard = (() =>{
         }
     };
 
+    const getMarker = (index) => {
+        return board[index];
+    };
+
     const placeMarker = (index, player) => {
         board[index] = player.marker;
     };
@@ -41,8 +45,7 @@ const Gameboard = (() =>{
     }
 
     resetBoard();
-    board = [1,1,1,1,null,-1,-1,-1,1];
-    return {board, resetBoard, placeMarker, detectWin};
+    return {board, resetBoard, placeMarker, detectWin, getMarker};
 })();
 
 const DisplayController = (() => {
@@ -66,7 +69,7 @@ const DisplayController = (() => {
         newText.innerText = innerText;
 
         if(clicked)
-            newCell.classList.add(clicked);
+            newCell.classList.add('clicked');
         newCell.appendChild(newText);
         cellDiv.appendChild(newCell);
 
@@ -146,14 +149,12 @@ const DisplayController = (() => {
         cells = [];
         cellTexts = [];
         for (let i = 0; i < 9; i++){
-            createCell(markerToSymbol(Gameboard.board[i]), !Gameboard.board[i]);
+            createCell(markerToSymbol(Gameboard.getMarker(i)), Gameboard.getMarker(i) !== 0);
         };
     }
 
     infoPanel.querySelector('#first-x').addEventListener('click', startX);
     infoPanel.querySelector('#first-o').addEventListener('click', startO);
-
-    console.log(infoPanel.querySelector('#first-o'));
 
     return{fetchNames, placeSymbol, resetDisplay, infoHide, updateTurnText, endText};
 })();
