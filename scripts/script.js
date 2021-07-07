@@ -74,8 +74,8 @@ const DisplayController = (() => {
     }
 
     const fetchNames = () => {
-        let playerXName = infoPanel.querySelector("#name-x") | 'Player 1';
-        let playerOName = infoPanel.querySelector("#name-o") | 'Player 2';
+        let playerXName = infoPanel.querySelector("#name-x").value || 'Player 1';
+        let playerOName = infoPanel.querySelector("#name-o").value || 'Player 2';
         return [playerXName, playerOName];
     }
 
@@ -86,66 +86,100 @@ const DisplayController = (() => {
         Gameboard.placeMarker(index, player);
         elem.classList.add('clicked');
         cellTexts[index].innerText = player.symbol;
+
+        GameLogic.nextTurn();
     };
 
     const resetDisplay = () => {
         for (let i = 0; i < cellCount; i++){
             cellTexts[i].innerText = '';
             cells[i].classList.remove('clicked');
-            cells[i].removeEventListener('click', ()=>{placeSymbol(cells[i])}, {once:true});
-            cells[i].addEventListener('click', ()=>{placeSymbol(cells[i])}, {once:true});
+            cells[i].addEventListener('click', (placeSymbol.bind(cells[i], cells[i])), {once:true});
         };
 
-        infoShow(true);
+        infoHide(true);
     }
 
-    const startButtonEvent = (elem, firstTurn) => {
-        console.log('Begin Game ('+firstTurn+')');
-        GameLogic.beginGame(firstTurn);
+    const startX = () => {
+        console.log('Begin Game (X)');
+        GameLogic.beginGame(0);
     }
 
-    const infoShow = isGameStart => {
-        if(isGameStart){
-            infoPanel.setAttribute('hidden', true);
-            turnPanel.removeAttribute('hidden');
+    const startO = () => {
+        console.log('Begin Game (O)');
+        GameLogic.beginGame(1);
+    }
+
+    const infoHide = () => {
+        infoPanel.setAttribute('hidden', true);
+        turnPanel.removeAttribute('hidden');
+    }
+
+    const updateTurnText = player => {
+        turnPanel.innerText = `Your turn, ${player.name}. Place an ${player.symbol}.`;
+    };
+
+    const endText = (player, isDraw) => {
+        infoPanel.removeAttribute('hidden');
+        if(isDraw){
+            turnPanel.innerText = `Tie Game!`;
         }
         else{
-            infoPanel.removeAttribute('hidden');
-            turnPanel.setAttribute('hidden', true);
+            turnPanel.innerText = `${player.name} (${player.symbol}) Wins!`;
         }
     }
 
-    infoPanel.querySelector('#first-x').addEventListener('click', ()=>{startButtonEvent(this,0)});
-    infoPanel.querySelector('#first-o').addEventListener('click', ()=>{startButtonEvent(this,1)});
+    infoPanel.querySelector('#first-x').addEventListener('click', startX);
+    infoPanel.querySelector('#first-o').addEventListener('click', startO);
 
     console.log(infoPanel.querySelector('#first-o'));
 
-    return{updateCells, fetchNames, placeSymbol, resetDisplay, infoShow};
+    return{updateCells, fetchNames, placeSymbol, resetDisplay, infoHide, updateTurnText, endText};
 })();
 
 const GameLogic = (()=> {
 
     //player 0 is X, player 1 is O
-    let turn = 0;
+    let playerIndex = 0;
+    let turnCount = 0;
     let players = [];
     let gameOver = true;
 
     const beginGame = (firstTurn) => {
         let names = DisplayController.fetchNames();
-        turn  = firstTurn;
+        playerIndex  = firstTurn;
         players[0] = PlayerFactory('X', -1, names[0]);
         players[1] = PlayerFactory('O', 1, names[1]);
         gameOver = false;
+        turnCount = 0;
 
         Gameboard.resetBoard();
         DisplayController.resetDisplay();
+        DisplayController.updateTurnText(currentPlayer());
     }
+
+    const nextTurn = () => {
+        if(Gameboard.detectWin(currentPlayer())){
+            DisplayController.endText(currentPlayer(), false);
+            gameOver = true;
+        }
+        else if(turnCount === 8){
+            DisplayController.endText(currentPlayer(), true);
+            gameOver = true;
+        }
+        else{
+            playerIndex = 1 - playerIndex;
+            turnCount++;
+
+            DisplayController.updateTurnText(currentPlayer());
+        }
+    };
 
     const canBeginGame = () => gameOver;
 
-    const currentPlayer = () => players[turn];
+    const currentPlayer = () => players[playerIndex];
 
-    return {beginGame, canBeginGame, currentPlayer};
+    return {beginGame, canBeginGame, currentPlayer, nextTurn};
 })();
 
 const PlayerFactory = (symbol, marker, name) =>{
