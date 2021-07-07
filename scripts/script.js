@@ -9,18 +9,8 @@ const Gameboard = (() =>{
         }
     };
 
-    const getSymbol = index =>{
-        if(board[index] < 0)
-            return 'X';
-        else if(board[index] > 0)
-            return 'O';
-        else
-            return '';
-    };
-
-    const placeSymbol = (elem, player) => {
-        let index = elem.getAttribute("data-index");
-        board[i] = player.marker;
+    const placeMarker = (index, player) => {
+        board[index] = player.marker;
     };
 
     const detectWin = (player) => {
@@ -52,40 +42,106 @@ const Gameboard = (() =>{
 
     resetBoard();
     board = [1,1,1,1,null,-1,-1,-1,1];
-    return {board, resetBoard, placeSymbol, detectWin};
+    return {board, resetBoard, placeMarker, detectWin};
 })();
 
 const DisplayController = (() => {
 
     const cells = [... document.querySelectorAll("div.game-cell")];
     const infoPanel = document.querySelector("#setup-panel");
-
+    const turnPanel = document.querySelector("#turn-order");
 
     let cellCount = 0;
-
     const cellTexts = cells.map(cell => {
         cell.setAttribute("data-index", cellCount++);
         return cell.children[0];
-    })
+    });
 
-    const updateCells = board => {
-        console.table(board);
-        for (let i = 0; i < 9; i++){
-            cellTexts[i].innerText = Gameboard.getSymbol(i);
+    const markerToSymbol = marker =>{
+        if(marker < 0)
+            return 'X';
+        else if(marker > 0)
+            return 'O';
+        else
+            return '';
+    };
+
+    const updateCells = () => {
+        for (let i = 0; i < cellCount; i++){
+            let marker = Gameboard.board[i];
+            cellTexts[i].innerText = markerToSymbol(marker);
         }
     }
 
-    return{updateCells};
+    const fetchNames = () => {
+        let playerXName = infoPanel.querySelector("#name-x") | 'Player 1';
+        let playerOName = infoPanel.querySelector("#name-o") | 'Player 2';
+        return [playerXName, playerOName];
+    }
+
+    const placeSymbol = elem => {
+        let player = GameLogic.currentPlayer();
+        let index = elem.getAttribute("data-index");
+        Gameboard.placeMarker(index, player);
+        cellTexts[index].innerText = player.symbol;
+    };
+
+    const resetDisplay = () => {
+        cells.forEach(cell =>{
+            cell.innerText = '';
+            cell.removeEventListener('onclick', placeSymbol, {once:true});
+            cell.addEventListener('onclick', placeSymbol, {once:true});
+        });
+    }
+
+    const startButtonEvent = (elem, firstTurn) =>{
+        GameLogic.beginGame(firstTurn);
+    }
+
+    const infoShow = isGameStart => {
+        if(isGameStart){
+            infoPanel.setAttribute('hidden');
+            turnPanel.removeAttribute('hidden');
+        }
+        else{
+            infoPanel.removeAttribute('hidden');
+            turnPanel.setAttribute('hidden');
+        }
+    }
+
+    infoPanel.querySelector('#first-x').addEventListener('onclick', startButtonEvent(0));
+    infoPanel.querySelector('#first-o').addEventListener('onclick', startButtonEvent(1));
+
+    return{updateCells, fetchNames, placeSymbol, resetDisplay, infoShow};
 })();
 
 const GameLogic = (()=> {
-    return {};
+
+    //player 0 is X, player 1 is O
+    let turn = 0;
+    let players = [];
+    let gameOver = true;
+
+    const beginGame = (firstTurn) => {
+        let names = DisplayController.fetchNames();
+        turn  = firstTurn;
+        players[0] = PlayerFactory('X', -1, names[0]);
+        players[1] = PlayerFactory('O', 1, names[1]);
+        gameOver = false;
+
+        Gameboard.resetBoard();
+        DisplayController.resetDisplay();
+    }
+
+    const canBeginGame = () => gameOver;
+
+    const currentPlayer = () => players[turn];
+
+    return {beginGame, canBeginGame, currentPlayer};
 })();
 
-const PlayerFactory = (symbol) =>{
-    let marker = 0;
-    let name = 'blank';
+const PlayerFactory = (symbol, marker, name) =>{
     return {symbol, marker, name};
 };
 
-//DisplayController.updateCells(Gameboard.board);
+//DisplayController.updateCells();
